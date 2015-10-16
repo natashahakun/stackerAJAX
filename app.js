@@ -6,15 +6,20 @@ $(document).ready( function() {
 		var tags = $(this).find("input[name='tags']").val();
 		getUnanswered(tags);
 	});
+	$('.inspiration-getter').submit( function(event){
+		$('.results').html('');
+		var tags = $(this).find("input[name='answerers']").val();
+		getAnswerers(tags);
+	});
 });
 
-// this function takes the question object returned by StackOverflow 
+// this function takes the question object returned by StackOverflow
 // and creates new result to be appended to DOM
 var showQuestion = function(question) {
-	
+
 	// clone our result template code
 	var result = $('.templates .question').clone();
-	
+
 	// Set the question properties in result
 	var questionElem = result.find('.question-text a');
 	questionElem.attr('href', question.link);
@@ -59,13 +64,13 @@ var showError = function(error){
 // takes a string of semi-colon separated tags to be searched
 // for on StackOverflow
 var getUnanswered = function(tags) {
-	
+
 	// the parameters we need to pass in our request to StackOverflow's API
 	var request = {tagged: tags,
 								site: 'stackoverflow',
 								order: 'desc',
 								sort: 'creation'};
-	
+
 	var result = $.ajax({
 		url: "http://api.stackexchange.com/2.2/questions/unanswered",
 		data: request,
@@ -74,7 +79,6 @@ var getUnanswered = function(tags) {
 		})
 	.done(function(result){
 		var searchResults = showSearchResults(request.tagged, result.items.length);
-
 		$('.search-results').html(searchResults);
 
 		$.each(result.items, function(i, item) {
@@ -88,5 +92,23 @@ var getUnanswered = function(tags) {
 	});
 };
 
+var getAnswerers = function(tags) {
+	var request = {site: 'stackoverflow'};
+
+	var result = $.ajax({
+		url: "http://api.stackexchange.com/2.2/tags/" + tags + "/top-answerers/month",
+		data: request,
+		dataType: "jsonp",
+		type: "GET"
+		})
+	.done(function(result){
+			$.each(result.items, function(i, item) {
+			var div = $('.templates .answerer').clone();
+			div.find('.answerer-name').text(item.user.display_name);
+			div.find('.reputation').text(item.user.reputation);
+			$('.results').append(div);
+		});
+	})
+}
 
 
